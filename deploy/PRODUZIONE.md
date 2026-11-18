@@ -1,17 +1,16 @@
 # Distribuzione di CP Fitness
 
-Questa configurazione predisposta per un server Linux con Docker Engine e Docker Compose pubblica `https://fitness.centropaghe.it` tramite Caddy. Non pubblica la porta 8000 del backend né usa il server di sviluppo Vite.
+Questa configurazione usa il reverse proxy nginx esterno per HTTPS e il certificato. Nginx inoltra a `http://192.168.7.200:8000`, dove Caddy serve il frontend e inoltra `/api` al backend sulla rete Docker. Il backend non è direttamente esposto.
 
 ## Rete e certificato
 
-- Il record DNS A/AAAA del dominio deve puntare al server (rimuovere AAAA se IPv6 non è configurato).
-- Aprire in ingresso TCP 80 e 443 verso il container Caddy. La porta 80 serve per il reindirizzamento e la verifica ACME HTTP; Caddy ottiene e rinnova automaticamente il certificato. La porta TCP 443 serve HTTPS. Non occorre esporre 5173 o 8000.
-- Se è già presente un reverse proxy o le porte sono occupate, il sistemista deve adattare la configurazione: questa installazione presume che Caddy gestisca direttamente 80/443 e TLS. Non avviare una seconda istanza sulla stessa porta.
+- Il DNS pubblico e le porte TCP 80 e 443 sono gestiti dal reverse proxy nginx, che gestisce anche il certificato e il rinnovo.
+- Il server fitness deve essere raggiungibile dal reverse proxy su `192.168.7.200:8000`. Limitare l'accesso a tale porta alla rete e al proxy autorizzati: il collegamento interno è HTTP e non è cifrato. L'indirizzo è vincolato in `compose.yaml` e va aggiornato se cambia l'IP del server.
 - La subnet Docker `172.30.0.0/24` deve essere libera; se va cambiata, aggiornare contemporaneamente gli IP statici in `compose.yaml` e l'IP proxy attendibile in `Dockerfile.backend`.
 
 ## Preparazione e avvio
 
-1. Copiare i sorgenti sul server. Creare `.env` da `.env.production.example`, impostare il dominio, un indirizzo email valido per ACME e le credenziali iniziali. Proteggere `.env` con permessi stretti (`chmod 600 .env`); non inserirlo in Git. Scegliere una password lunga e casuale.
+1. Copiare i sorgenti sul server. Creare `.env` da `.env.production.example`, impostare il dominio e le credenziali iniziali. Proteggere `.env` con permessi stretti (`chmod 600 .env`); non inserirlo in Git. Scegliere una password lunga e casuale. Il certificato è gestito esternamente e `ACME_EMAIL` non viene usata da questa configurazione.
 2. Eseguire `docker compose config --quiet`, quindi `docker compose up -d --build`.
 3. Verificare `docker compose ps`, `docker compose logs web backend`, il certificato e l'accesso a `https://fitness.centropaghe.it`. Le richieste `/api` usano la stessa origine HTTPS. Provare login, accesso a un tenant e caricamento/apertura di un allegato di prova.
 4. Le variabili `SUPERADMIN_EMAIL` e `SUPERADMIN_PASSWORD` creano il super amministratore solo se non ne esiste già uno. Cambiarle successivamente non modifica l'account esistente. Per un'installazione nuova non utilizzare la password di sviluppo né importare automaticamente i dati dimostrativi.

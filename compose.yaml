@@ -19,12 +19,8 @@ services:
       context: .
       dockerfile: Dockerfile.web
     restart: unless-stopped
-    environment:
-      SITE_DOMAIN: ${SITE_DOMAIN:?Imposta SITE_DOMAIN}
-      ACME_EMAIL: ${ACME_EMAIL:?Imposta ACME_EMAIL}
     ports:
-      - "80:80"
-      - "443:443"
+      - "192.168.7.200:8000:80"
     volumes:
       - caddy_data:/data
       - caddy_config:/config
