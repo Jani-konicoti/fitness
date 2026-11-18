@@ -1,0 +1,1 @@
+{"name":"cp-fitness","version":"1.0.0","type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview"},"dependencies":{"lucide-react":"0.468.0","react":"19.2.7","react-dom":"19.2.7","vite":"8.0.11"},"overrides":{"source-map-js":"1.2.1","nanoid":"3.3.16","postcss":"8.5.25","picomatch":"4.0.5"}}

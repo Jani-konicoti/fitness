@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /data/fitness.db
+      CORS_ORIGINS: https://${SITE_DOMAIN:?Imposta SITE_DOMAIN}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:?Imposta SUPERADMIN_EMAIL}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:?Imposta SUPERADMIN_PASSWORD}
+    volumes:
+      - fitness_data:/data
+    networks:
+      fitness_internal:
+        ipv4_address: 172.30.0.3
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Imposta SITE_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Imposta ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+    networks:
+      fitness_internal:
+        ipv4_address: 172.30.0.2
+volumes:
+  fitness_data:
+  caddy_data:
+  caddy_config:
+networks:
+  fitness_internal:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
